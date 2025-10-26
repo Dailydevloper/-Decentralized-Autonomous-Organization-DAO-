@@ -1,1 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DAO Frontend</title>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.min.js"></script>
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background: #0f111a;
+      color: #f3f3f3;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    input, button, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+    }
+    button {
+      background-color: #3b82f6;
+      color: white;
+      cursor: pointer;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+    button:hover { background-color: #2563eb; }
+    .card {
+      background: #1a1d2b;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>Decentralized Autonomous Organization (DAO)</h1>
+  <p>Interact with the deployed DAO smart contract on testnet.</p>
 
+  <div class="card">
+    <h3>1️⃣ Connect Wallet</h3>
+    <button onclick="connectWallet()">Connect MetaMask</button>
+    <p id="walletAddress"></p>
+  </div>
+
+  <div class="card">
+    <h3>2️⃣ Create Proposal</h3>
+    <textarea id="proposalDesc" placeholder="Enter proposal description..."></textarea>
+    <button onclick="createProposal()">Create</button>
+    <p id="createStatus"></p>
+  </div>
+
+  <div class="card">
+    <h3>3️⃣ Vote on Proposal</h3>
+    <input id="voteId" type="number" placeholder="Enter Proposal ID" />
+    <button onclick="voteOnProposal()">Vote</button>
+    <p id="voteStatus"></p>
+  </div>
+
+  <div class="card">
+    <h3>4️⃣ View Proposal</h3>
+    <input id="viewId" type="number" placeholder="Enter Proposal ID" />
+    <button onclick="getProposal()">View</button>
+    <pre id="proposalData"></pre>
+  </div>
+
+  <script>
+    const contractAddress = "0x879B11BCE4f243cA7a2c4CeEE78a04f1a1257fA2";
+
+    const abi = [ [
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "member",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "MemberAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "proposalId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "proposer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "deadline",
+				"type": "uint256"
+			}
+		],
+		"name": "ProposalCreated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "proposalId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			}
+		],
+		"name": "ProposalExecuted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "newQuorum",
+				"type": "uint256"
+			}
+		],
+		"name": "QuorumPercentUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "proposalId",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "voter",
+				"type": "address"
+			}
+		],
+		"name": "VoteCast",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "MINIMUM_VOTES",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "VOTING_PERIOD",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_member",
+				"type": "address"
+			}
+		],
+		"name": "addMember",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_description",
+				"type": "string"
+			}
+		],
+		"name": "createProposal",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_proposalId",
+				"type": "uint256"
+			}
+		],
+		"name": "executeProposal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_proposalId",
+				"type": "uint256"
+			}
+		],
+		"name": "getProposal",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "description",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "voteCount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "deadline",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "executed",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "proposer",
+				"type": "address"
+			},
+			{
+				"internalType": "enum Project.ProposalState",
+				"name": "state",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_proposalId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_voter",
+				"type": "address"
+			}
+		],
+		"name": "hasVoted",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "memberCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "members",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "membershipDate",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "proposalCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "quorumPercent",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_percent",
+				"type": "uint256"
+			}
+		],
+		"name": "setQuorumPercent",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_proposalId",
+				"type": "uint256"
+			}
+		],
+		"name": "voteOnProposal",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]    ];
+
+    let provider, signer, contract;
+
+    async function connectWallet() {
+      if (typeof window.ethereum === "undefined") {
+        alert("Please install MetaMask.");
+        return;
+      }
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      signer = provider.getSigner();
+      const address = await signer.getAddress();
+      document.getElementById("walletAddress").innerText = `Connected: ${address}`;
+      contract = new ethers.Contract(contractAddress, abi, signer);
+    }
+
+    async function createProposal() {
+      try {
+        const desc = document.getElementById("proposalDesc").value.trim();
+        if (!desc) return alert("Enter description first.");
+        const tx = await contract.createProposal(desc);
+        document.getElementById("createStatus").innerText = "Transaction sent... waiting for confirmation";
+        await tx.wait();
+        document.getElementById("createStatus").innerText = "✅ Proposal created successfully!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("createStatus").innerText = "❌ " + (err.message || "Error");
+      }
+    }
+
+    async function voteOnProposal() {
+      try {
+        const id = parseInt(document.getElementById("voteId").value);
+        if (!id) return alert("Enter a valid Proposal ID.");
+        const tx = await contract.voteOnProposal(id);
+        document.getElementById("voteStatus").innerText = "Voting in progress...";
+        await tx.wait();
+        document.getElementById("voteStatus").innerText = "✅ Voted successfully!";
+      } catch (err) {
+        console.error(err);
+        document.getElementById("voteStatus").innerText = "❌ " + (err.message || "Error");
+      }
+    }
+
+    async function getProposal() {
+      try {
+        const id = parseInt(document.getElementById("viewId").value);
+        if (!id) return alert("Enter valid ID.");
+        const result = await contract.getProposal(id);
+        const [pid, desc, votes, deadline, executed, proposer, state] = result;
+        const remaining = Math.max(deadline - Math.floor(Date.now() / 1000), 0);
+        document.getElementById("proposalData").innerText =
+          `ID: ${pid}\nDescription: ${desc}\nVotes: ${votes}\nDeadline: ${new Date(deadline*1000).toLocaleString()}\nExecuted: ${executed}\nProposer: ${proposer}\nState: ${state}\nTime left: ${remaining/3600|0}h`;
+      } catch (err) {
+        console.error(err);
+        document.getElementById("proposalData").innerText = "❌ " + (err.message || "Error");
+      }
+    }
+  </script>
+</body>
+</html>
