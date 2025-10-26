@@ -112,6 +112,7 @@ Decentralized-Autonomous-Organization/
 - `createProposal(string memory _description)` - Create new proposals (members only)
 - `voteOnProposal(uint256 _proposalId)` - Vote on active proposals (members only)
 
-## Contract Details : 0x626fafdEaaa7F28c0Ba97f414bc37Fe16fD38794
-<img width="1920" height="999" alt="image" src="https://github.com/user-attachments/assets/f0927715-c45d-403c-ab04-8219a99c9b3e" />
+## Contract Details : 0x879B11BCE4f243cA7a2c4CeEE78a04f1a1257fA2
+<img width="1919" height="990" alt="image" src="https://github.com/user-attachments/assets/c081140f-ef19-4b77-b79c-e7516e00334b" />
+
 
