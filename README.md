@@ -18,31 +18,81 @@ By providing an accessible and secure DAO implementation, we envision a future w
 
 ## Key Features
 
-### 1. **Membership Management**
-- Only the contract owner can add new members
-- Each member is recorded with their membership timestamp
-- Members have equal voting rights on all proposals
+### 1. **Advanced Membership Management**
+- Owner-controlled member additions and removals
+- Member reputation system that rewards participation
+- Blacklist functionality for security
+- Membership timestamps and historical tracking
+- Starting reputation: 50 points for new members
 
-### 2. **Proposal Creation**
-- Any DAO member can create proposals with detailed descriptions
-- Each proposal has a unique ID and a 7-day voting period
-- Proposals are immutably stored on the blockchain
+### 2. **Multi-Type Proposal System**
+- **General Proposals**: Community decisions and initiatives
+- **Treasury Proposals**: Fund allocation with automatic execution
+- **Membership Change**: Adding/removing members via voting
+- **Constitutional**: Major governance changes
+- 7-day voting period for all proposals
+- Each proposal immutably stored on-chain
 
-### 3. **Democratic Voting System**
+### 3. **Democratic Voting with Quorum**
+- For/Against voting system (not just binary approval)
+- Configurable quorum requirement (default: 30% of members)
+- Configurable pass threshold (default: 60% approval)
 - One member, one vote per proposal
-- Votes are recorded transparently on-chain
-- Proposals automatically execute when minimum vote threshold (3 votes) is reached
+- Reputation rewards for voting (+2 points)
 - Prevents double voting through smart contract logic
 
-### 4. **Time-Based Governance**
-- Voting periods are enforced automatically (7 days)
-- Expired proposals cannot receive new votes
-- Clear deadlines ensure timely decision-making
+### 4. **Treasury Management**
+- Built-in DAO treasury for fund management
+- Accept ETH deposits via receive function
+- Automated fund distribution through approved treasury proposals
+- Real-time balance tracking
+- Secure fund withdrawal only via executed proposals
 
-### 5. **Event Logging**
+### 5. **Reputation System**
+- Dynamic reputation scoring for all members
+- Earn reputation through participation:
+  - Creating proposals: +5 points
+  - Voting: +2 points
+  - Successful proposals: +10 points
+- Tracks member engagement and contribution
+
+### 6. **Proposal Execution Engine**
+- Automatic execution after voting deadline
+- Quorum validation before execution
+- Threshold checking for proposal passage
+- Automated treasury transfers for approved funding
+- Proposal state tracking (active, executed, passed/failed)
+
+### 7. **Governance Configuration**
+- Adjustable quorum percentage (owner-controlled)
+- Adjustable pass threshold (owner-controlled)
+- Emergency pause mechanism for security
+- Flexible governance parameters
+
+### 8. **Security Features**
+- Emergency pause functionality
+- Member blacklisting capability
+- Owner protection (cannot be removed)
+- Input validation on all functions
+- Reentrancy protection on treasury operations
+
+### 9. **Comprehensive Event Logging**
 - All major actions emit events for easy tracking
-- Complete audit trail of membership additions, proposals, and votes
+- Complete audit trail of:
+  - Membership changes
+  - Proposal lifecycle
+  - Voting activity
+  - Treasury transactions
+  - Governance updates
+  - Reputation changes
 - Enables off-chain applications to monitor DAO activity
+
+### 10. **Advanced Query Functions**
+- Get detailed proposal information
+- Check individual vote choices
+- View member information and reputation
+- Access DAO statistics dashboard
+- Real-time proposal status checking
 
 ## Future Scope
 
@@ -108,12 +158,28 @@ Decentralized-Autonomous-Organization/
 
 ### Core Functions
 
+**Membership:**
 - `addMember(address _member)` - Add new members (owner only)
-- `createProposal(string memory _description)` - Create new proposals (members only)
-- `voteOnProposal(uint256 _proposalId)` - Vote on active proposals (members only)
+- `removeMember(address _member)` - Remove and blacklist members (owner only)
 
-## Contract Details : 0x3D854Cd5f0C927A5778Eee20C760e19f2d9da197
-<img width="1919" height="936" alt="image" src="https://github.com/user-attachments/assets/f2fc275e-d681-4045-a0fe-850d13822268" />
+**Proposals:**
+- `createProposal(string _description, ProposalType _type, address _target, uint256 _amount)` - Create proposals with type specification
+- `voteOnProposal(uint256 _proposalId, bool _support)` - Vote for or against proposals
+- `executeProposal(uint256 _proposalId)` - Execute proposal after voting ends
 
+**Treasury:**
+- `receive()` - Accept ETH deposits to treasury
+- Treasury transfers executed automatically via approved proposals
 
+**Governance:**
+- `updateQuorum(uint256 _newQuorum)` - Adjust quorum requirement (owner only)
+- `updatePassThreshold(uint256 _newThreshold)` - Adjust pass threshold (owner only)
+- `setPaused(bool _paused)` - Emergency pause/unpause (owner only)
 
+**View Functions:**
+- `getProposal(uint256 _proposalId)` - Get detailed proposal info
+- `getMemberInfo(address _member)` - Get member stats and reputation
+- `getDAOStats()` - Get overall DAO statistics
+- `getVoteChoice(uint256 _proposalId, address _voter)` - Check how someone voted
+
+---
