@@ -182,4 +182,6 @@ Decentralized-Autonomous-Organization/
 - `getDAOStats()` - Get overall DAO statistics
 - `getVoteChoice(uint256 _proposalId, address _voter)` - Check how someone voted
 
----
+## Contract Details : 0xCE6387dcEcA508b2bc872A1C668dDE851d07c983
+<img width="1919" height="943" alt="image" src="https://github.com/user-attachments/assets/6c1a1178-78c6-4a67-b99b-ec5258f6a2be" />
+
